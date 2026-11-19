@@ -1,0 +1,69 @@
+/* Blinkers (home, search) */
+
+#loadingBlinker {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+}
+
+#loadingBlinkerImage {
+    height: 8rem;
+}
+
+.prog-container {
+    width: 75%;
+}
+
+.prog-bar-container {
+    width: 100%;
+    height: 1rem;
+    background-color: lightgray;
+}
+
+.prog-bar {
+    width: 0%;
+    height: 1rem;
+    background-color: black;
+}
+
+/* Shadows */
+
+.shadow-at-hover {
+    transition: box-shadow 0.2s;
+}
+.shadow-at-hover:hover {
+    box-shadow: 0.5rem 0.5rem 0.25rem rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth fade-in/out animation */
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+    }
+}
+
+.slide-in {
+    animation: slideIn 0.2s ease-out forwards;
+}
+
+.slide-out {
+    animation: slideOut 0.2s ease-in forwards;
+}

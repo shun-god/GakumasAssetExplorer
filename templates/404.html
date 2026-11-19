@@ -1,0 +1,16 @@
+{% extends "layout.html" %} {% block content %}
+
+<script>
+    setTimeout(() => {
+        window.location.href = "/";
+    }, 3000);
+</script>
+
+<div id="missingpageElements" class="below-navbar">
+    <div class="title" id="homeMetadata">
+        <div class="text-bold">Page not found.</div>
+        <div>Redirecting to homepage in 3 seconds...</div>
+    </div>
+</div>
+
+{% endblock %}

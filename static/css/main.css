@@ -1,0 +1,78 @@
+@import url("font.css");
+@import url("searchform.css");
+@import url("animation.css");
+@import url("pages.css");
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
+    padding: 0;
+    width: 100%;
+    font-family: "NYC Sans", sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+}
+
+/* General layout */
+
+.align-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.hide-by-default {
+    display: none;
+}
+
+.col-md-1-14 {
+    flex: 0 0 auto;
+    width: calc(100% / 14);
+}
+
+/* General text */
+
+.text-size-150 * {
+    font-size: 1.5rem;
+}
+
+.text-size-125-force * {
+    font-size: 1.25rem !important;
+}
+
+.text-size-75-force * {
+    font-size: 0.75rem !important;
+}
+
+/*  Should better be called text-black,
+    but black is also a color... bruh  */
+.text-bold {
+    font-weight: 900;
+}
+
+.text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+/* General multimedia */
+
+.image-landscape {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    width: 100%;
+    height: auto;
+}
