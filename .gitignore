@@ -1,5 +1,7 @@
 # PROJECT-SPECIFIC
 .*
+!.python-version
+/shro_voices/
 objects/*
 !MANIFEST
 

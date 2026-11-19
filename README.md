@@ -1,174 +1,106 @@
-# GkmasObjectManager
+# GakumasAssetExplorer
 
-An OOP interface for interacting with object databases
-in the mobile game [Gakuen Idolm@ster](https://gakuen.idolmaster-official.jp/).
+『学園アイドルマスター』の画像・音声・動画などのアセットを、ブラウザーや Python から探して取得するツールです。キャラクターのボイスと台詞をまとめて書き出すこともできます。
 
-Designed with ❤ by [Ziyuan "Heartcore" Chen](https://allenheartcore.github.io/). <br>
-Refactored from [gkmasToolkit](https://github.com/kishidanatsumi/gkmasToolkit) by Kishida Natsumi, <br>
-which in turn was adapted from [HoshimiToolkit](https://github.com/MalitsPlus/HoshimiToolkit) by Vibbit. <br>
-Request API & decryption algorithms borrowed from [HatsuboshiToolkit](https://github.com/DreamGallery/HatsuboshiToolkit) by DreamGallery.
+- このリポジトリは [shun-god/GakumasAssetExplorer](https://github.com/shun-god/GakumasAssetExplorer) です。
+- AllenHeartcore 氏の [GkmasObjectManager](https://github.com/AllenHeartcore/GkmasObjectManager) を取得し、そこから開発を続けています。Python から使うときのモジュール名は `GkmasObjectManager` です。
 
+## セットアップ
 
+[uv](https://docs.astral.sh/uv/getting-started/installation/) をインストールし、以下を実行します。すでにリポジトリを取得済みなら、そのフォルダで `uv sync --locked` を実行してください。
 
-## Features
+```sh
+git clone https://github.com/shun-god/GakumasAssetExplorer.git
+cd GakumasAssetExplorer
+uv sync --locked
+```
 
-- Fetch, decrypt, deserialize, and export manifest as ProtoDB, JSON, or CSV
-- Differentiate between / add (apply patch to) manifest versions
-- Download and deobfuscate assetbundles and resources in parallel
-- Media conversion plugins for Texture2D, AudioClip audio, AWB audio, and USM video
+既定の Python は 3.12 です。依存ライブラリは `uv.lock` に記録されたバージョンで `.venv` にインストールされます。動画変換などで FFmpeg を使う場合は、別途インストールして `PATH` に追加してください。
 
+## Web UI でアセットを探す
 
+```sh
+uv run --locked python server.py
+```
 
-## Example Usage
+ブラウザーで [http://127.0.0.1:5001](http://127.0.0.1:5001) を開きます。検索欄に `shro` や `sud_vo_adv` など、アセット名の一部を入力すると候補を探せます。検索結果から詳細ページを開くと、対応するアセットをプレビュー・ダウンロードできます。
+
+## キャラクターの音声と台詞を書き出す
+
+キャラクター ID を指定して実行します。たとえば `shro` は篠澤 広です。指定できる ID は [CHARACTER_ABBREVS](GkmasObjectManager/const.py) または `uv run --locked python export_voices.py --help` で確認できます。
+
+```sh
+uv run --locked python export_voices.py shro -o shro_voices
+```
+
+複数人を指定すると、同じシナリオの音声を一度だけ取得・デコードして、話者ごとに振り分けます。この例では `voices` の下に `shro_voices`、`hski_voices`、`ttmr_voices` ができます。
+
+```sh
+uv run --locked python export_voices.py shro hski ttmr -o voices
+```
+
+`-o` は、単体指定ならキャラクターの出力先、複数指定ならキャラクター別フォルダをまとめる親フォルダです。省略すると、現在のディレクトリに `<キャラクターID>_voices` が作られます。
+
+各アーカイブのフォルダに WAV と `captions.csv` が入ります。シナリオ音声はトラック名で話者を判定するため、ほかのキャラクターのシナリオに登場する台詞も対象です。
+
+| CSV の `caption_status` | 意味 |
+| --- | --- |
+| `matched` | 音声に対応する台詞が見つかった |
+| `not_found` | シナリオ音声に対応する台詞が見つからなかった |
+| `not_applicable` | システムボイスなど、台詞の照合対象外の音声 |
+
+再実行すると、キャラクターごとの `.completed.json` を参照して処理済みのアーカイブをスキップします。出力先を引き継いだまま、対象キャラクターを追加できます。
+
+まず 1 件だけ試したい場合は `--archive` でアーカイブ名を指定します。
+
+```sh
+uv run --locked python export_voices.py shro --archive "sud_vo_adv_dear_shro_001.acb"
+```
+
+保存済みのマニフェストを使う場合は `--manifest <ファイルのパス>` を指定します。
+
+## 音声と台詞を聴き比べる（Windows）
+
+[`voice_viewer/launch.cmd`](voice_viewer/launch.cmd) をエクスプローラーでダブルクリックすると、既定のブラウザーでビューアーが開きます。ターミナルからは `uv run --locked python voice_viewer/viewer.py` で起動できます。
+
+1. リポジトリ直下の `shro_voices` を自動で開きます。別の場所の音声は「音声フォルダ」にパスを入力して「開く」を押します。複数キャラクターをまとめた親フォルダも指定できます。
+2. 台詞やファイル名で検索できます。「未検出台詞を隠す」を選ぶと、台詞が見つからなかったシナリオ音声を一覧から除外できます。一覧の「長さ（秒）」を確認し、並べ替えで短い順・長い順に切り替えられます。「再生」を押すか行をダブルクリックすると WAV が流れます。
+3. 聴き比べたい行をそれぞれ「A に登録」「B に登録」し、「A を再生」「B を再生」で切り替えます。登録した音声は別のフォルダを開いた後も再生できます。
+
+ビューアーは `voice_viewer/` の独立した Flask アプリとして動作し、WAV と `captions.csv` をローカルで読み込みます。終了するには起動時のコンソールで Ctrl+C を押します。
+
+## Python から使う
+
+`uv run --locked python` で対話シェルを起動し、次のように使えます。マニフェストはゲーム内アセットの一覧です。
 
 ```python
 import GkmasObjectManager as gom
 
-m = gom.fetch()  # fetch latest
-m.export("manifest.json")
+manifest = gom.fetch()
+manifest.export("manifest.json")
 
-m_old = gom.load("octocacheevai")
-m_diff = m - m_old
-m_diff.export("manifest_diff.json")
+# カード画像の名前を検索する
+for asset in manifest.search(r"img.*cidol.*full.*")[:5]:
+    print(asset.name)
 
-m.download(
-    "img.*cidol.*full.*", "img.*csprt.*full.*",  # character & support cards
-    image_format="JPEG", image_resize="16:9"
+# カード画像を JPEG で保存する
+manifest.download(
+    r"img.*cidol.*full.*",
+    path="card_images",
+    image_format="jpeg",
 )
-m.download("sud.*inst.*.awb", audio_format="WAV")  # instrumental songs
-m.download("mov.*cidol.*loop.usm", video_format="MP4")  # animated character cards
-m.download(
-    "sud_vo_adv_unit.*",
-    path="mainstory_voicelines",
-    audio_format="mp3",  # applies to all subsongs
-    unpack_subsongs=True,  # unpack ZIP to output directory
-)
-
-m.download_preset("presets/namecard_kit.yml")
 ```
 
+`gom.load()` で保存済みのマニフェストを読み込み、新旧の差分を確認できます。クラス構成、アセット名のパターン、プリセットの使用例は [派生元の README](https://github.com/AllenHeartcore/GkmasObjectManager#readme) を参照してください。
 
+## 依存ライブラリを変更する
 
-## Class Hierarchy
+`uv add <パッケージ名>` で追加し、`uv remove <パッケージ名>` で削除します。依存関係を変更したら `pyproject.toml` と `uv.lock` を一緒にコミットしてください。
 
-- `manifest.decrypt.AESCBCDecryptor` - Manifest decryption
-- `manifest.octodb_pb2.Database` - ProtoDB deserialization
-- `manifest.manifest.GkmasManifest` - **ENTRY POINT**
-  - `manifest.versioning.GkmasManifestVersion` - Manifest version management
-  - `manifest.listing.GkmasObjectList` - Object listing and indexing
-    - `object.resource.GkmasResource` - Non-Unity object
-      - `media.dummy.GkmasDummyMedia` - Base class for media conversion plugins
-      - `media.image.GkmasImage` - PNG image handling
-      - `media.audio.GkmasAudio` - MP3 audio handling
-      - `media.audio.GkmasAWBAudio` - ACB/AWB audio conversion
-      - `media.video.GkmasUSMVideo` - USM video conversion
-    - `object.deobfuscate.GkmasAssetBundleDeobfuscator`
-    - `object.assetbundle.GkmasAssetBundle` - Unity object
-      - `media.dummy.GkmasDummyMedia`
-      - `media.image.GkmasUnityImage` - Texture2D image handling
-      - `media.audio.GkmasUnityAudio` - AudioClip audio handling
+## クレジットとライセンス
 
+- 派生元の GkmasObjectManager は [Ziyuan "Heartcore" Chen](https://allenheartcore.github.io/) 氏が開発しました。
+- GkmasObjectManager は Kishida Natsumi 氏の [gkmasToolkit](https://github.com/kishidanatsumi/gkmasToolkit) を改修したものです。gkmasToolkit は Vibbit 氏の [HoshimiToolkit](https://github.com/MalitsPlus/HoshimiToolkit) をもとにしています。
+- 配信 API へのリクエストと復号処理は、DreamGallery 氏の [HatsuboshiToolkit](https://github.com/DreamGallery/HatsuboshiToolkit) に由来します。
 
-
-## Object Hierarchy
-
-`#` denotes a number. <br>
-`IDOL` denotes `(hski|ttmr|fktn|amao|kllj|kcna|ssmk|shro|hrnm|hume|hmsz|jsna)`.
-
-- Image `img`
-  - `adv`
-    - `img_adv_speaker_(krnh|andk|sson|sgka)_###-###`
-    - `img_adv_still_all_cmmn_###-##`
-    - `img_adv_still_dear_IDOL_###-###`
-    - `img_adv_still_pstory_cmmn_###-##`
-  - `chr`
-    - `img_chr_IDOL_##-(audition|bustup|full|thumb-circle|thumb-push)`
-    - `img_chr_(atbm|nasr|trvo|trda|trvi)_##-thumb-circle`
-  - `cos`
-    - `img_cos_IDOL-(schl|trng|casl|cstm|othr)-####_body`
-    - `img_cos_costume_head_IDOL-(schl|casl|cstm|hair)-####_head`
-  - `gasha`
-    - `img_gasha_banner_gasha-#####-(standard|pickup|select-pickup|free)-###-(logo|select|select-m|select-s)`
-    - `img_gasha_banner_gasha-#####-(pidol|support)-select-pickup-###-(logo|select-m|select-s)`
-    - `img_gasha_banner_gasha_ticket_ssr_(idol|support|idol_support)_#-(logo|select-m|select-s)`
-    - `img_gasha_banner_gasha_ssr_##-(logo|select-m|select-s)`
-    - `img_gasha_text_*`
-  - `general`
-    - `img_general_achievement_(common|produce|char_IDOL)_###`
-    - `img_general_achievement_IDOL-(#-###|master|tower)_###`
-    - `img_general_cidol-IDOL-#-###_#-(full|thumb-(landscape|landscape-large|portrait|square|gasha))`
-    - `img_general_csprt-1-####_(full|thumb-(landscape|square))`
-    - `img_general_(comic_####|comic4_####|comic4_####-thumb)`
-    - `img_general_commu_(top|part|support|event)-header_###`
-    - `img_general_commu_chapter-(header|thumb)_##-##`
-    - `img_general_commu_thumb_unit_##-##-##`
-    - `img_general_commu_idol-top_IDOL-thumb`
-    - `img_general_commu_dearness_IDOL-banner`
-    - ...
-  - ...
-- Audio `sud`
-  - ...
-- Video `mov`
-  - Major
-    - `mov_adv_dear_ed_IDOL_###`
-    - `mov_general_cidol-IDOL-3-###_1(|-loop)(|-gasha)`
-    - `mov_general_gasha_bg_idol_cidol-IDOL-3-###`
-    - `mov_general_gasha_bg_support_csprt-#-####`
-    - `mov_general_gasha_live_i_card-skin-IDOL-3-###-result`
-  - Minor
-    - `mov_adv_unit_explanation_cmmn_001`
-    - `mov_gasha_monitor_(monitor|step1|tap)-(000|002|003|004_IDOL)`
-    - `mov_gasha_movie_tap-(000|002|003|004)`
-    - `mov_general_gasha_(school-logo|taptostart)-alpha`
-    - `mov_general_media_(opening|pv|pv_jsna)_001`
-    - `mov_general_monitor_(01|03)`
-- Text `adv`
-  - Major
-    - `adv_cidol-IDOL-3-###_##`
-    - `adv_csprt-#-####_##`
-    - `adv_dear_IDOL_(###|010-01)`
-    - `adv_event_###_main-##`
-    - `adv_live_IDOL_001_(start|end)-(##-01|04-02)`
-    - `adv_pevent_001_IDOL_(activity_(###|(017|018)-(01-02))|school_###)`
-    - `adv_pevent_002_IDOL_sales_#-###-(01|02)`
-    - `adv_pgrowth_001_IDOL_##`
-    - `adv_pstep_001_cmmn_(before|after)-(lesson|jyugyo|odekake|rest|sikyu)-##-(a|b|c|d|cmn)(|-02)`
-    - `adv_pstep_002_cmmn_((before-lesson-##-(a|b|c|d))|((before|after)-eigyo|after-present)-##-cmn-(01|02))`
-    - `adv_pstory_001_IDOL_(opening|after-step-(1|2)|ending)-(normal|true)-##`
-    - `adv_pstory_001_IDOL_(before|after)-audition-(mid|final)-(normal|failure)-##`
-    - `adv_unit_01-##_##`
-  - Minor
-    - `adv_event_highscore_introduction-01`
-    - `adv_presult_(001|002)_(midterm-failure|final-(failure|normal-##|true))`
-    - `adv_produce-refresh_(001|002)_before-audition-(final|mid)`
-    - `adv_produce-week-skip_002_01`
-    - `adv_pweek_001_cmmn_(toschool|schoolroom|corridor|classroom)-(01|02)-(a|b|c|d|ac)(|-02)`
-    - `adv_startup_202#_(|user-)bd-01_IDOL-01`
-    - `adv_tower-001`
-    - `adv_tutorial_first_(cmmn|hski|ttmr|fktn)-##`
-    - `adv_warmup`
-- Models
-  - Model `mdl`
-    - ...
-  - Motion `mot`
-    - ...
-  - Environment `env`
-    - ...
-  - FBX `fbx`
-  - MEF `mef`
-  - Timeline `tln`
-  - Crowd `crw`
-  - Effect `eff`
-- Miscellaneous
-  - `scl`
-  - `ttn`
-  - `fgd`
-  - `t`
-  - `sky`
-  - `image_sprite_atlas.unity3d`
-  - `actor-shader.unity3d`
-  - `ui-shader.unity3d`
-  - `shader.unity3d`
-  - `m_fdc.unity3d`
-  - `Custom.acf`
-  - `musics.txt`
+ソースコードのライセンスは [GNU GPL v3](LICENSE) です。

@@ -73,6 +73,7 @@ CSV_COLUMNS = ["objectName", "md5", "name", "size", "state"]
 
 # manifest download dispatcher
 DEFAULT_DOWNLOAD_PATH = "objects/"
+DEFAULT_USERNAME = "プロデューサー"
 
 # object download
 CHARACTER_ABBREVS = [

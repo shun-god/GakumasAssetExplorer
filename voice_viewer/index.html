@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>学マス 音声ビューアー</title>
+  <link rel="stylesheet" href="/static/viewer.css">
+  <script src="/static/viewer.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>学マス 音声ビューアー</h1>
+      <form id="folder-form">
+        <label for="folder">音声フォルダ</label>
+        <div class="folder-input">
+          <input id="folder" type="text" required spellcheck="false" placeholder="フォルダのパス">
+          <button class="primary" type="submit">開く</button>
+        </div>
+      </form>
+      <p id="library-status" class="muted" role="status"></p>
+    </header>
+
+    <section class="compare" aria-labelledby="compare-heading">
+      <h2 id="compare-heading">聴き比べ</h2>
+      <div class="slots">
+        <div class="slot" data-slot="A"><button type="button" disabled>A を再生</button><div><p class="slot-caption">未登録</p><p class="slot-name muted"></p></div></div>
+        <div class="slot" data-slot="B"><button type="button" disabled>B を再生</button><div><p class="slot-caption">未登録</p><p class="slot-name muted"></p></div></div>
+      </div>
+      <div class="player">
+        <div><p id="playing-caption">再生する音声を選択</p><p id="playing-name" class="muted"></p></div>
+        <audio id="audio" controls preload="none"></audio>
+      </div>
+      <p id="playback-status" class="muted" role="status"></p>
+    </section>
+
+    <section class="library" aria-labelledby="library-heading">
+      <div class="toolbar">
+        <h2 id="library-heading">音声一覧</h2>
+        <label class="search"><span>検索</span><input id="query" type="search" placeholder="台詞・ファイル名"></label>
+        <label class="checkbox"><input id="captions-only" type="checkbox">台詞ありのみ</label>
+        <label class="checkbox"><input id="hide-not-found" type="checkbox">未検出台詞を隠す</label>
+        <label class="sort"><span>並べ替え</span><select id="sort">
+          <option value="filename">ファイル名</option>
+          <option value="shortest">短い順</option>
+          <option value="longest">長い順</option>
+        </select></label>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th scope="col">台詞 / ファイル名</th><th scope="col">長さ（秒）</th><th scope="col">操作</th></tr></thead>
+          <tbody id="clips"></tbody>
+        </table>
+      </div>
+      <p id="empty" class="muted" hidden>該当する音声がありません。</p>
+      <footer>
+        <span id="count" class="muted" role="status"></span>
+        <div class="pagination"><button id="prev" type="button">前へ</button><span id="page"></span><button id="next" type="button">次へ</button></div>
+      </footer>
+    </section>
+  </main>
+</body>
+</html>

@@ -135,6 +135,14 @@ class GkmasAWBAudio(GkmasDummyMedia):
 class GkmasACBAudio(GkmasAWBAudio):
     """Conversion plugin for ACB audio archive."""
 
+    def read_named_segments(self) -> list[Tuple[str, AudioSegment]]:
+        """Decode WAV tracks while retaining their cue names, even for one track."""
+        self.reporter.register()
+        segments = self._read_segments(self.raw)
+        if not segments:
+            raise ValueError("Found no audio segments in the archive.")
+        return segments
+
     @staticmethod
     def _make_vgmstream_args(
         tmp_in: str, tmp_out: str, suffix: str
