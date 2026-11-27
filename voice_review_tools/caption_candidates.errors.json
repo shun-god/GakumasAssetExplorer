@@ -1,0 +1,10 @@
+[
+  {
+    "scenario": "adv_pstory_003_amao_final-failure-01.txt",
+    "error": "not enough values to unpack (expected 2, got 1)"
+  },
+  {
+    "scenario": "adv_pstory_003_amao_selection-failure-01.txt",
+    "error": "not enough values to unpack (expected 2, got 1)"
+  }
+]
